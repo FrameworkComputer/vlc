@@ -59,6 +59,7 @@
  * @{
  */
 #define VLC_VAR_HASCHOICE 0x0100
+#define VLC_VAR_ISREADONLY 0x0400
 
 #define VLC_VAR_ISCOMMAND 0x2000
 

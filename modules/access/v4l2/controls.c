@@ -362,8 +362,11 @@ static vlc_v4l2_ctrl_t *ControlCreate (int fd,
 
 #define CTRL_FLAGS_IGNORE \
     (V4L2_CTRL_FLAG_DISABLED /* not implemented at all */ \
-    |V4L2_CTRL_FLAG_READ_ONLY /* value is constant */ \
     |V4L2_CTRL_FLAG_VOLATILE /* value is (variable but) read-only */)
+
+#define CTRL_FLAGS_READONLY \
+    (V4L2_CTRL_FLAG_READ_ONLY /* value is constant */ \
+    |V4L2_CTRL_FLAG_INACTIVE /* value is temporarily inactive due to some other setting */)
 
 static vlc_v4l2_ctrl_t *ControlAddInteger (vlc_object_t *obj, int fd,
                                            const struct v4l2_queryctrl *query)
@@ -376,7 +379,11 @@ static vlc_v4l2_ctrl_t *ControlAddInteger (vlc_object_t *obj, int fd,
     if (unlikely(c == NULL))
         return NULL;
 
-    if (var_Create (obj, c->name, VLC_VAR_INTEGER | VLC_VAR_ISCOMMAND))
+    int var_flags = VLC_VAR_INTEGER | VLC_VAR_ISCOMMAND;
+    if (query->flags & CTRL_FLAGS_READONLY)
+        var_flags |= VLC_VAR_ISREADONLY;
+
+    if (var_Create (obj, c->name, var_flags))
     {
         free (c);
         return NULL;
@@ -400,6 +407,10 @@ static vlc_v4l2_ctrl_t *ControlAddInteger (vlc_object_t *obj, int fd,
         val.i_int = query->step;
         var_Change(obj, c->name, VLC_VAR_SETSTEP, val);
     }
+    if (query->flags & V4L2_CTRL_FLAG_READ_ONLY)
+        msg_Dbg (obj, "  readonly");
+    if (query->flags & V4L2_CTRL_FLAG_INACTIVE)
+        msg_Dbg (obj, "  inactive");
     return c;
 }
 
@@ -414,7 +425,11 @@ static vlc_v4l2_ctrl_t *ControlAddBoolean (vlc_object_t *obj, int fd,
     if (unlikely(c == NULL))
         return NULL;
 
-    if (var_Create (obj, c->name, VLC_VAR_BOOL | VLC_VAR_ISCOMMAND))
+    int var_flags = VLC_VAR_BOOL | VLC_VAR_ISCOMMAND;
+    if (query->flags & CTRL_FLAGS_READONLY)
+        var_flags |= VLC_VAR_ISREADONLY;
+
+    if (var_Create (obj, c->name, var_flags))
     {
         free (c);
         return NULL;
@@ -431,6 +446,10 @@ static vlc_v4l2_ctrl_t *ControlAddBoolean (vlc_object_t *obj, int fd,
         val.b_bool = ctrl.value;
         var_Change(obj, c->name, VLC_VAR_SETVALUE, val);
     }
+    if (query->flags & V4L2_CTRL_FLAG_READ_ONLY)
+        msg_Dbg (obj, "  readonly");
+    if (query->flags & V4L2_CTRL_FLAG_INACTIVE)
+        msg_Dbg (obj, "  inactive");
     return c;
 }
 
@@ -445,7 +464,11 @@ static vlc_v4l2_ctrl_t *ControlAddMenu (vlc_object_t *obj, int fd,
     if (unlikely(c == NULL))
         return NULL;
 
-    if (var_Create (obj, c->name, VLC_VAR_INTEGER | VLC_VAR_ISCOMMAND))
+    int var_flags = VLC_VAR_INTEGER | VLC_VAR_ISCOMMAND;
+    if (query->flags & CTRL_FLAGS_READONLY)
+        var_flags |= VLC_VAR_ISREADONLY;
+
+    if (var_Create (obj, c->name, var_flags))
     {
         free (c);
         return NULL;
@@ -494,7 +517,11 @@ static vlc_v4l2_ctrl_t *ControlAddButton (vlc_object_t *obj, int fd,
     if (unlikely(c == NULL))
         return NULL;
 
-    if (var_Create (obj, c->name, VLC_VAR_VOID | VLC_VAR_ISCOMMAND))
+    int var_flags = VLC_VAR_VOID | VLC_VAR_ISCOMMAND;
+    if (query->flags & CTRL_FLAGS_READONLY)
+        var_flags |= VLC_VAR_ISREADONLY;
+
+    if (var_Create (obj, c->name, var_flags))
     {
         free (c);
         return NULL;
@@ -513,7 +540,11 @@ static vlc_v4l2_ctrl_t *ControlAddInteger64 (vlc_object_t *obj, int fd,
     if (unlikely(c == NULL))
         return NULL;
 
-    if (var_Create (obj, c->name, VLC_VAR_INTEGER | VLC_VAR_ISCOMMAND))
+    int var_flags = VLC_VAR_INTEGER | VLC_VAR_ISCOMMAND;
+    if (query->flags & CTRL_FLAGS_READONLY)
+        var_flags |= VLC_VAR_ISREADONLY;
+
+    if (var_Create (obj, c->name, var_flags))
     {
         free (c);
         return NULL;
@@ -557,7 +588,11 @@ static vlc_v4l2_ctrl_t *ControlAddString (vlc_object_t *obj, int fd,
     if (unlikely(c == NULL))
         return NULL;
 
-    if (var_Create (obj, c->name, VLC_VAR_STRING | VLC_VAR_ISCOMMAND))
+    int var_flags = VLC_VAR_STRING | VLC_VAR_ISCOMMAND;
+    if (query->flags & CTRL_FLAGS_READONLY)
+        var_flags |= VLC_VAR_ISREADONLY;
+
+    if (var_Create (obj, c->name, var_flags))
     {
         free (c);
         return NULL;
@@ -603,7 +638,11 @@ static vlc_v4l2_ctrl_t *ControlAddBitMask (vlc_object_t *obj, int fd,
     if (unlikely(c == NULL))
         return NULL;
 
-    if (var_Create (obj, c->name, VLC_VAR_INTEGER | VLC_VAR_ISCOMMAND))
+    int var_flags = VLC_VAR_INTEGER | VLC_VAR_ISCOMMAND;
+    if (query->flags & CTRL_FLAGS_READONLY)
+        var_flags |= VLC_VAR_ISREADONLY;
+
+    if (var_Create (obj, c->name, var_flags))
     {
         free (c);
         return NULL;
@@ -636,7 +675,11 @@ static vlc_v4l2_ctrl_t *ControlAddIntMenu (vlc_object_t *obj, int fd,
     if (unlikely(c == NULL))
         return NULL;
 
-    if (var_Create (obj, c->name, VLC_VAR_INTEGER | VLC_VAR_ISCOMMAND))
+    int var_flags = VLC_VAR_INTEGER | VLC_VAR_ISCOMMAND;
+    if (query->flags & CTRL_FLAGS_READONLY)
+        var_flags |= VLC_VAR_ISREADONLY;
+
+    if (var_Create (obj, c->name, var_flags))
     {
         free (c);
         return NULL;
