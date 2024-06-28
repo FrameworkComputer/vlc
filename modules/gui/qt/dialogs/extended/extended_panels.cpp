@@ -734,6 +734,9 @@ void ExtV4l2::Refresh( void )
                     QCheckBox *button = new QCheckBox( name, box );
                     button->setObjectName( qfu( psz_var ) );
                     button->setChecked( var_GetBool( p_obj, psz_var ) );
+                    // TODO: How to pass readonly/inactive to here?
+                    // if ()
+                    //     button->setEnabled( false );
 
                     CONNECT( button, clicked( bool ), this,
                              ValueChange( bool ) );

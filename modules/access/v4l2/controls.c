@@ -363,6 +363,7 @@ static vlc_v4l2_ctrl_t *ControlCreate (int fd,
 #define CTRL_FLAGS_IGNORE \
     (V4L2_CTRL_FLAG_DISABLED /* not implemented at all */ \
     |V4L2_CTRL_FLAG_READ_ONLY /* value is constant */ \
+    |V4L2_CTRL_FLAG_INACTIVE /* value is temporarily inactive due to some other setting */ \
     |V4L2_CTRL_FLAG_VOLATILE /* value is (variable but) read-only */)
 
 static vlc_v4l2_ctrl_t *ControlAddInteger (vlc_object_t *obj, int fd,
@@ -414,6 +415,7 @@ static vlc_v4l2_ctrl_t *ControlAddBoolean (vlc_object_t *obj, int fd,
     if (unlikely(c == NULL))
         return NULL;
 
+    // This one
     if (var_Create (obj, c->name, VLC_VAR_BOOL | VLC_VAR_ISCOMMAND))
     {
         free (c);

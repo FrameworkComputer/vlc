@@ -99,6 +99,7 @@
 
 #define VLC_VAR_CHOICESCOUNT        0x0026
 #define VLC_VAR_SETMINMAX           0x0027
+// TODO: Need to add here?
 
 /**@}*/
 
