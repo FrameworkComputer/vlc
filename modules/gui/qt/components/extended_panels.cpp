@@ -739,6 +739,8 @@ void ExtV4l2::Refresh( void )
                         }
                         var_FreeList( &val2, &text2 );
 
+                        if( i_type & VLC_VAR_ISREADONLY )
+                            combobox->setEnabled( false );
                         CONNECT( combobox, currentIndexChanged( int ), this,
                                  ValueChange( int ) );
                         hlayout->addWidget( combobox );
@@ -763,6 +765,8 @@ void ExtV4l2::Refresh( void )
                                          &val2, NULL ) )
                             slider->setSingleStep( val2.i_int );
                         slider->setValue( i_val );
+                        if( i_type & VLC_VAR_ISREADONLY )
+                            slider->setEnabled( false );
                         CONNECT( slider, valueChanged( int ), this,
                                  ValueChange( int ) );
                         hlayout->addWidget( slider );
@@ -775,6 +779,8 @@ void ExtV4l2::Refresh( void )
                     QCheckBox *button = new QCheckBox( name, box );
                     button->setObjectName( qfu( psz_var ) );
                     button->setChecked( var_GetBool( p_obj, psz_var ) );
+                    if( i_type & VLC_VAR_ISREADONLY )
+                        button->setEnabled( false );
 
                     CONNECT( button, clicked( bool ), this,
                              ValueChange( bool ) );
@@ -787,6 +793,8 @@ void ExtV4l2::Refresh( void )
                     {
                         QPushButton *button = new QPushButton( name, box );
                         button->setObjectName( qfu( psz_var ) );
+                        if( i_type & VLC_VAR_ISREADONLY )
+                            button->setEnabled( false );
 
                         CONNECT( button, clicked( bool ), this,
                                  ValueChange( bool ) );
