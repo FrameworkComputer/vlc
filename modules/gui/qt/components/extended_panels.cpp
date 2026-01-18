@@ -852,7 +852,9 @@ void ExtV4l2::ValueChange( int value )
                 break;
             case VLC_VAR_VOID:
                 var_TriggerCallback( p_obj, qtu( var ) );
-                break;
+                vlc_object_release( p_obj );
+                Refresh(); /* Update UI with new values (including readonly) */
+                return;
         }
         vlc_object_release( p_obj );
     }

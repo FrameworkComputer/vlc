@@ -211,10 +211,50 @@ static void ControlsReset (vlc_object_t *obj, vlc_v4l2_ctrl_t *list)
     }
 }
 
+static void ControlsRefresh (vlc_object_t *obj, vlc_v4l2_ctrl_t *list)
+{
+    /* Re-read current values from the camera device (only readonly controls) */
+    while (list != NULL)
+    {
+        if (!list->readonly)
+        {
+            list = list->next;
+            continue;
+        }
+
+        struct v4l2_control ctrl = { .id = list->id };
+
+        if (v4l2_ioctl (list->fd, VIDIOC_G_CTRL, &ctrl) >= 0)
+        {
+            switch (list->type)
+            {
+                case V4L2_CTRL_TYPE_INTEGER:
+                case V4L2_CTRL_TYPE_MENU:
+                case V4L2_CTRL_TYPE_INTEGER_MENU:
+                case V4L2_CTRL_TYPE_BITMASK:
+                {
+                    vlc_value_t val = { .i_int = ctrl.value };
+                    var_Change (obj, list->name, VLC_VAR_SETVALUE, &val, NULL);
+                    break;
+                }
+                case V4L2_CTRL_TYPE_BOOLEAN:
+                {
+                    vlc_value_t val = { .b_bool = ctrl.value };
+                    var_Change (obj, list->name, VLC_VAR_SETVALUE, &val, NULL);
+                    break;
+                }
+                default:;
+            }
+        }
+        list = list->next;
+    }
+}
+
 static int ControlsResetCallback (vlc_object_t *obj, const char *var,
                                   vlc_value_t old, vlc_value_t cur, void *data)
 {
     ControlsReset (obj, data);
+    ControlsRefresh (obj, data); /* Re-read values from camera (for readonly) */
     (void) var; (void) old; (void) cur;
     return VLC_SUCCESS;
 }
