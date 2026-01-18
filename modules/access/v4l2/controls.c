@@ -91,6 +91,7 @@ struct vlc_v4l2_ctrl
     int                   fd;
     uint32_t              id;
     uint8_t               type;
+    bool                  readonly;
     char                  name[32];
     int32_t               default_value;
     struct vlc_v4l2_ctrl *next;
@@ -151,6 +152,9 @@ static int ControlSetCallback (vlc_object_t *obj, const char *var,
     const vlc_v4l2_ctrl_t *ctrl = data;
     int ret;
 
+    if (ctrl->readonly)
+        return VLC_SUCCESS; /* Cannot set readonly controls */
+
     switch (ctrl->type)
     {
         case V4L2_CTRL_TYPE_INTEGER:
@@ -188,17 +192,20 @@ static void ControlsReset (vlc_object_t *obj, vlc_v4l2_ctrl_t *list)
 {
     while (list != NULL)
     {
-        switch (list->type)
+        if (!list->readonly)
         {
-            case V4L2_CTRL_TYPE_INTEGER:
-            case V4L2_CTRL_TYPE_MENU:
-            case V4L2_CTRL_TYPE_INTEGER_MENU:
-                var_SetInteger (obj, list->name, list->default_value);
-                break;
-            case V4L2_CTRL_TYPE_BOOLEAN:
-                var_SetBool (obj, list->name, list->default_value);
-                break;
-            default:;
+            switch (list->type)
+            {
+                case V4L2_CTRL_TYPE_INTEGER:
+                case V4L2_CTRL_TYPE_MENU:
+                case V4L2_CTRL_TYPE_INTEGER_MENU:
+                    var_SetInteger (obj, list->name, list->default_value);
+                    break;
+                case V4L2_CTRL_TYPE_BOOLEAN:
+                    var_SetBool (obj, list->name, list->default_value);
+                    break;
+                default:;
+            }
         }
         list = list->next;
     }
@@ -356,6 +363,8 @@ static vlc_v4l2_ctrl_t *ControlCreate (int fd,
     }
 
     ctrl->default_value = query->default_value;
+    ctrl->readonly = (query->flags & V4L2_CTRL_FLAG_READ_ONLY)
+                  || (query->flags & V4L2_CTRL_FLAG_INACTIVE);
     return ctrl;
 }
 
